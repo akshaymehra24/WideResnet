@@ -4,7 +4,9 @@ Created on Sat Dec  7 15:16:02 2019
 
 @author: Akshay Mehra
 """
-# Reaches 95.89 in 130 epochs, might be a little slow initially but picks up eventually
+
+# Reaches 95.56 in 120 epochs
+
 import tensorflow as tf
 import numpy as np
 import torchvision
@@ -113,7 +115,7 @@ def make_resnet_filter(ins, depth=28, widen_factor=10, dropout_rate = 0.3, reuse
 with tf.variable_scope('WRN', reuse=False):
     logits_train = make_resnet_filter(x_tf, depth=28, widen_factor=10, dropout_rate = 0.3, reuse=False)
     
-with tf.variable_scope('WRN', reuse=False):
+with tf.variable_scope('WRN', reuse=True):
     logits_test = make_resnet_filter(x_tf, depth=28, widen_factor=10, dropout_rate = 0.3, reuse=True)
     
 var_filt = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='WRN')
@@ -129,16 +131,16 @@ sess.run(tf.global_variables_initializer())
 
 def learning_rate(init, epoch):
     optim_factor = 0
-    if(epoch > 160):
+    if(epoch > 90):
         optim_factor = 3
-    elif(epoch > 120):
-        optim_factor = 2
     elif(epoch > 60):
+        optim_factor = 2
+    elif(epoch > 30):
         optim_factor = 1
 
     return init*math.pow(0.2, optim_factor)
     
-epochs = 200
+epochs = 120
 for ep in range(1, epochs): 
     
     lr_mi = learning_rate(0.1, ep)
