@@ -118,12 +118,15 @@ with tf.variable_scope('WRN', reuse=False):
 with tf.variable_scope('WRN', reuse=True):
     logits_test = make_resnet_filter(x_tf, depth=28, widen_factor=10, dropout_rate = 0.3, reuse=True)
     
-var_filt = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, scope='WRN')
+var_filt = tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='WRN')
+saver_model = tf.train.Saver(var_filt, max_to_keep = None)
 
 loss = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits = logits_train, labels=y_tf)) + 5E-4 * tf.add_n([tf.nn.l2_loss(v) for v in var_filt])
 
+update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
 optimizer_min = tf.train.MomentumOptimizer(learning_rate = lr_tf, momentum = 0.9)
-optim_min = optimizer_min.minimize(loss, var_list=var_filt)
+optim_min_loss = optimizer_min.minimize(loss, var_list=var_filt)
+optim_min = tf.group([optim_min_loss, update_ops])
 
 prediction = tf.nn.softmax(logits_test)
 
